@@ -115,7 +115,6 @@ namespace POESKillTree.Views
         private AdornerLayer _layer;
 
         private MouseButton _lastMouseButton;
-        private bool userInteraction = false;
         /// <summary>
         /// The node of the SkillTree that currently has the mouse over it.
         /// Null if no node is under the mouse.
@@ -511,7 +510,7 @@ namespace POESKillTree.Views
                     case Key.D5:
                     case Key.D6:
                     case Key.D7:
-                        userInteraction = true;
+                        ViewModel.UserInteraction = true;
                         var index = int.Parse(e.Key.ToString().Substring(1)) - 1;
                         ViewModel.CharacterClass = ViewModel.CharacterClasses[index];
                         ViewModel.AscendancyClassIndex = 0;
@@ -961,14 +960,14 @@ namespace POESKillTree.Views
         #region  Character Selection
         private void userInteraction_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            userInteraction = true;
+            ViewModel.UserInteraction = true;
         }
 
         private void cbCharType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
              if (ViewModel.Tree == null)
                 return;
-             if (!userInteraction)
+             if (!ViewModel.UserInteraction)
                  return;
              if (ViewModel.Tree.Chartype == ViewModel.CharacterClassIndex) return;
 
@@ -977,14 +976,14 @@ namespace POESKillTree.Views
             UpdateUI();
             tbSkillURL.Text = ViewModel.Tree.SaveToURL();
             ViewModel.Tree.LoadFromURL(tbSkillURL.Text);
-            userInteraction = false;
+            ViewModel.UserInteraction = false;
             PopulateAsendancySelectionList();
             ViewModel.AscendancyClassIndex = ViewModel.Tree.AscType = 0;
         }
 
         private void cbAscType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (!userInteraction)
+            if (!ViewModel.UserInteraction)
                 return;
             if (ViewModel.AscendancyClassIndex < 0 || ViewModel.AscendancyClassIndex > 3)
                 return;
@@ -994,7 +993,7 @@ namespace POESKillTree.Views
             UpdateUI();
             tbSkillURL.Text = ViewModel.Tree.SaveToURL();
             ViewModel.Tree.LoadFromURL(tbSkillURL.Text);
-            userInteraction = false;
+            ViewModel.UserInteraction = false;
         }
 
         private void PopulateAsendancySelectionList()
@@ -1895,7 +1894,7 @@ namespace POESKillTree.Views
                 await SaveBuildsToFile();
             }
             lvSavedBuilds.SelectedIndex = lvSavedBuilds.Items.Count - 1;
-            if(lvSavedBuilds.SelectedIndex != -1)
+            if (lvSavedBuilds.SelectedIndex != -1)
                 lvSavedBuilds.ScrollIntoView(lvSavedBuilds.Items[lvSavedBuilds.Items.Count - 1]);
         }
 
@@ -1916,7 +1915,7 @@ namespace POESKillTree.Views
         {
             try
             {
-                userInteraction = true;
+                ViewModel.UserInteraction = true;
                 if (tbSkillURL.Text.Contains("poezone.ru"))
                 {
                     await SkillTreeImporter.LoadBuildFromPoezone(DialogCoordinator.Instance, ViewModel.Tree, tbSkillURL.Text);

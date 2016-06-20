@@ -17,5 +17,6 @@ namespace POESKillTree.ViewModels
         public int AscendancyClassIndex { get; set; }
         public List<string> AscendancyClasses { get; set; }
         public SkillTree Tree { get; set; }
+        public bool UserInteraction { get; set; }
     }
 }
