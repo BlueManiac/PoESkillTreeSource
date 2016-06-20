@@ -13,18 +13,7 @@
              d:DataContext="{d:DesignInstance viewModels:AttributePanelViewModel}">
     <UserControl.Resources>
 
-        <viewModels:AttributeToTextblockConverter x:Key="attributeToTextblockConverter" />
-        <Style x:Key="ContainerStyle" TargetType="{x:Type GroupItem}">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate>
-                        <Expander Header="{Binding Name}" IsExpanded="True" FontSize="12" Width="370">
-                            <ItemsPresenter />
-                        </Expander>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+        <viewModels:AttributeToTextblockConverter x:Key="AttributeToTextblockConverter" />
     </UserControl.Resources>
     <Grid Background="{DynamicResource WhiteColorBrush}">
         <Grid.RowDefinitions>
@@ -53,7 +42,7 @@
                         <ListBox ScrollViewer.CanContentScroll="False" Height="{Binding ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" HorizontalAlignment="Center" x:Name="listBox1" ItemsSource="{Binding AttributesCollection}" SelectionMode="Extended" VerticalAlignment="Top" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" ScrollViewer.HorizontalScrollBarVisibility="Hidden" >
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <ContentControl Content="{Binding Converter={StaticResource attributeToTextblockConverter}}"/>
+                                    <ContentControl Content="{Binding Converter={StaticResource AttributeToTextblockConverter}}"/>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                             <ListBox.GroupStyle>
@@ -67,7 +56,7 @@
                         <xaml:Catalog Message="Item Attributes"/>
                     </TabItem.Header>
                     <Grid>
-                        <ListBox ScrollViewer.CanContentScroll="False"  ItemsSource="{Binding ItemAttributes.Attributes, ElementName=window, Mode=OneWay}"  Height="{Binding ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" x:Name="lbItemAttr" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}">
+                        <ListBox ScrollViewer.CanContentScroll="False" ItemsSource="{Binding ItemAttributes.Attributes}"  Height="{Binding ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate DataType="{x:Type items:ItemAttributes+Attribute}">
                                     <StackPanel>
@@ -86,7 +75,7 @@
                         <xaml:Catalog Message="Total Attributes"/>
                     </TabItem.Header>
                     <Grid>
-                        <ListBox ScrollViewer.CanContentScroll="False" Height="{Binding ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" x:Name="lbAllAttr" ItemsSource="{Binding AllAttributesCollection}" SelectionMode="Extended" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}">
+                        <ListBox ScrollViewer.CanContentScroll="False" ItemsSource="{Binding AllAttributesCollection}" Height="{Binding ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" x:Name="lbAllAttr" SelectionMode="Extended" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate DataType="viewModels:Attribute">
                                     <TextBlock Text="{Binding Text}" TextWrapping="Wrap"/>
@@ -103,7 +92,7 @@
                         <xaml:Catalog Message="ItemList" />
                     </TabItem.Header>
                     <Grid>
-                        <ListBox ScrollViewer.CanContentScroll="False"  ItemsSource="{Binding ItemAttributes.Equip, ElementName=window, Mode=OneWay}" Height="{Binding ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" x:Name="lbItemList" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}">
+                        <ListBox ScrollViewer.CanContentScroll="False" ItemsSource="{Binding ItemAttributes.Equip}" Height="{Binding ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate DataType="items:Item">
                                     <local:ItemTooltip Item="{Binding}"/>

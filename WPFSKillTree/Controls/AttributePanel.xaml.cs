@@ -254,12 +254,12 @@ namespace POESKillTree.Controls
         {
             ViewModel.AllAttributes.Clear();
 
-            if (ViewModel.ItemAttributes == null)
+            if (App.MainViewModel.ItemAttributes == null)
                 return;
 
             Dictionary<string, List<float>> attritemp = App.MainViewModel.Tree.SelectedAttributesWithoutImplicit;
 
-            var itemAttris = ViewModel.ItemAttributes.NonLocalMods
+            var itemAttris = App.MainViewModel.ItemAttributes.NonLocalMods
                 .Select(m => new KeyValuePair<string, List<float>>(m.Attribute, m.Value))
                 .SelectMany(SkillTree.ExpandHybridAttributes);
 

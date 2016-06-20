@@ -846,9 +846,9 @@ namespace POESKillTree.Views
             _defenceList.Clear();
             _offenceList.Clear();
 
-            if (AttributePanel.ViewModel.ItemAttributes != null)
+            if (ViewModel.ItemAttributes != null)
             {
-                Compute.Initialize(ViewModel.Tree, AttributePanel.ViewModel.ItemAttributes);
+                Compute.Initialize(ViewModel.Tree, ViewModel.ItemAttributes);
 
                 foreach (ListGroup group in Compute.Defense())
                 {
@@ -1223,10 +1223,10 @@ namespace POESKillTree.Views
             if (_pauseLoadItemData)
                 return;
 
-            if (AttributePanel.ViewModel.ItemAttributes != null)
+            if (ViewModel.ItemAttributes != null)
             {
-                AttributePanel.ViewModel.ItemAttributes.Equip.CollectionChanged -= ItemAttributesEquipCollectionChanged;
-                AttributePanel.ViewModel.ItemAttributes.PropertyChanged -= ItemAttributesPropertyChanged;
+                ViewModel.ItemAttributes.Equip.CollectionChanged -= ItemAttributesEquipCollectionChanged;
+                ViewModel.ItemAttributes.PropertyChanged -= ItemAttributesPropertyChanged;
             }
 
             var itemData = _persistentData.CurrentBuild.ItemData;
@@ -1251,7 +1251,7 @@ namespace POESKillTree.Views
 
             itemAttributes.Equip.CollectionChanged += ItemAttributesEquipCollectionChanged;
             itemAttributes.PropertyChanged += ItemAttributesPropertyChanged;
-            AttributePanel.ViewModel.ItemAttributes = itemAttributes;
+            ViewModel.ItemAttributes = itemAttributes;
             UpdateUI();
         }
 
@@ -1263,7 +1263,7 @@ namespace POESKillTree.Views
         private void ItemAttributesEquipCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
         {
             _pauseLoadItemData = true;
-            _persistentData.CurrentBuild.ItemData = AttributePanel.ViewModel.ItemAttributes.ToJsonString();
+            _persistentData.CurrentBuild.ItemData = ViewModel.ItemAttributes.ToJsonString();
             _pauseLoadItemData = false;
         }
 

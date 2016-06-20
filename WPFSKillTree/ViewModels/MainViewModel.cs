@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using POESKillTree.Model.Items;
 using POESKillTree.SkillTreeFiles;
 using PropertyChanged;
 
@@ -22,5 +23,6 @@ namespace POESKillTree.ViewModels
         public bool UserInteraction { get; set; }
 
         public string SkillTreeUrl { get; set; } = "https://www.pathofexile.com/passive-skill-tree/AAAAAgMA";
+        public ItemAttributes ItemAttributes { get; set; }
     }
 }

@@ -684,7 +684,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Rectangle Grid.ColumnSpan="2" Height="2" Fill="{DynamicResource GrayNormalBrush}" VerticalAlignment="Top" />
-                        <local:Inventory HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0" ItemAttributes="{Binding ItemAttributes, ElementName=window}" Grid.Column="0"/>
+                        <local:Inventory HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,0,0" ItemAttributes="{Binding ItemAttributes}" Grid.Column="0"/>
                         <Button Grid.Column="0" Margin="10" Click="Button_Craft_Click" HorizontalAlignment="Right" VerticalAlignment="Top" MinWidth="100" MinHeight="40">
                             <l:Catalog Message="Craft new item"/>
                         </Button>
