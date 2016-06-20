@@ -5,6 +5,7 @@ using System.Windows;
 using POESKillTree.Localization;
 using POESKillTree.Model;
 using POESKillTree.Utils;
+using POESKillTree.ViewModels;
 
 namespace POESKillTree.Views
 {
@@ -23,6 +24,7 @@ namespace POESKillTree.Views
         private Mutex RunningInstanceMutex;
         // The name of RunningInstanceMutex.
         private static string RunningInstanceMutexName { get { return POESKillTree.Properties.Version.AppId; } }
+        public static MainViewModel MainViewModel { get; set; }
 
         // Invoked when application is about to exit.
         private void App_Exit(object sender, ExitEventArgs e)

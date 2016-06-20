@@ -5,7 +5,7 @@
              Startup="App_Startup"
              StartupUri="MainWindow.xaml"
              Exit="App_Exit"
-             DispatcherUnhandledException="App_DispatcherUnhandledException" 
+             DispatcherUnhandledException="App_DispatcherUnhandledException"
              >
     <Application.Resources>
         <ResourceDictionary>
@@ -20,10 +20,23 @@
                 <ResourceDictionary Source="pack://application:,,,/Styles/Dialogs.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/Styles/Other.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            
+
             <system:Boolean x:Key="True">True</system:Boolean>
             <system:Boolean x:Key="False">False</system:Boolean>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+
+            <Style x:Key="ContainerStyleIsExpanded" TargetType="{x:Type GroupItem}">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate>
+                            <Expander Header="{Binding Name}" IsExpanded="{Binding Name.IsExpanded}" FontSize="12" Width="370">
+                                <ItemsPresenter />
+                            </Expander>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
     <JumpList.JumpList>

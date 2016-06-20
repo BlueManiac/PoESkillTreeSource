@@ -57,37 +57,18 @@ namespace POESKillTree.Views
             get { return _persistentData; }
         }
 
-        private readonly List<Attribute> _allAttributesList = new List<Attribute>();
-        private readonly List<Attribute> _attiblist = new List<Attribute>();
         private readonly List<ListGroupItem> _defenceList = new List<ListGroupItem>();
         private readonly Dictionary<string, AttributeGroup> _defenceListGroups = new Dictionary<string, AttributeGroup>();
         private readonly List<ListGroupItem> _offenceList = new List<ListGroupItem>();
         private readonly Dictionary<string, AttributeGroup> _offenceListGroups = new Dictionary<string, AttributeGroup>();
-        private readonly Regex _backreplace = new Regex("#");
+
+
         private readonly ToolTip _sToolTip = new ToolTip();
         private readonly ToolTip _noteTip = new ToolTip();
-        private ListCollectionView _allAttributeCollection;
-        private ListCollectionView _attributeCollection;
+
         private ListCollectionView _defenceCollection;
         private ListCollectionView _offenceCollection;
         private RenderTargetBitmap _clipboardBmp;
-
-        private GroupStringConverter _attributeGroups;
-        private ContextMenu _attributeContextMenu;
-        private MenuItem cmCreateGroup, cmAddToGroup, cmRemoveFromGroup, cmDeleteGroup;
-
-        private ItemAttributes _itemAttributes;
-        public ItemAttributes ItemAttributes
-        {
-            get { return _itemAttributes; }
-            private set
-            {
-                if (value == _itemAttributes)
-                    return;
-                _itemAttributes = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ItemAttributes"));
-            }
-        }
 
         private async Task<SkillTree> CreateSkillTreeAsync(ProgressDialogController controller,
             AssetLoader assetLoader = null)
@@ -149,7 +130,7 @@ namespace POESKillTree.Views
         {
             InitializeComponent();
 
-            DataContext = new MainViewModel();
+            DataContext = App.MainViewModel = new MainViewModel();
 
             // Register handlers
             PersistentData.CurrentBuild.PropertyChanged += CurrentBuildOnPropertyChanged;
@@ -184,174 +165,6 @@ namespace POESKillTree.Views
             }
         }
 
-        //This whole region, along with most of GroupStringConverter, makes up our user-defined attribute group functionality - Sectoidfodder 02/29/16
-        #region Attribute grouping helpers
-
-        //there's probably a better way that doesn't break if tab ordering changes but I'm UI-challenged
-        private ListBox GetActiveAttributeGroupList()
-        {
-            if (tabControl1.SelectedIndex == 2)
-                return lbAllAttr;
-            else if (tabControl1.SelectedIndex == 0)
-                return listBox1;
-            else
-                return null;
-        }
-
-        //Necessary to update the summed numbers in group names before every refresh
-        private void RefreshAttributeLists()
-        {
-            if (GetActiveAttributeGroupList()==lbAllAttr)
-            {
-                _attributeGroups.UpdateGroupNames(_allAttributesList);
-            }
-            //use passive attribute list as a default so nothing breaks if neither tab is actually active
-            else
-            {
-                _attributeGroups.UpdateGroupNames(_attiblist);
-            }
-            _attributeCollection.Refresh();
-            _allAttributeCollection.Refresh();
-        }
-
-        private void SetCustomGroups(List<string[]> customgroups)
-        {
-            cmAddToGroup.Items.Clear();
-            cmDeleteGroup.Items.Clear();
-
-            var groupnames = new List<string>();
-
-            foreach (var gp in customgroups)
-            {
-                if (!groupnames.Contains(gp[1]))
-                {
-                    groupnames.Add(gp[1]);
-                }
-            }
-
-            cmAddToGroup.IsEnabled = false;
-            cmDeleteGroup.IsEnabled = false;
-
-            foreach (var name in groupnames)
-            {
-                var newSubMenu = new MenuItem {Header = name};
-                newSubMenu.Click += AddToGroup;
-                cmAddToGroup.Items.Add(newSubMenu);
-                cmAddToGroup.IsEnabled = true;
-                newSubMenu = new MenuItem {Header = name};
-                newSubMenu.Click += DeleteGroup;
-                cmDeleteGroup.Items.Add(newSubMenu);
-                cmDeleteGroup.IsEnabled = true;
-            }
-
-            _attributeGroups.ResetGroups(customgroups);
-            RefreshAttributeLists();
-        }
-
-        //Adds currently selected attributes to a new group
-        private async void CreateGroup(object sender, RoutedEventArgs e)
-        {
-            ListBox lb = GetActiveAttributeGroupList();
-            if (lb == null)
-                return;
-            var attributelist = new List<string>();
-            foreach (object o in lb.SelectedItems)
-            {
-                attributelist.Add(o.ToString());
-            }
-
-            //Build and show form to enter group name
-            var name = await this.ShowInputAsync(L10n.Message("Create New Attribute Group"), L10n.Message("Group name"));
-            if (!string.IsNullOrEmpty(name))
-            {
-                if (_attributeGroups.AttributeGroups.ContainsKey(name))
-                {
-                    await this.ShowInfoAsync(L10n.Message("A group with that name already exists."));
-                    return;
-                }
-
-                //Add submenus that add to and delete the new group
-                var newSubMenu = new MenuItem {Header = name};
-                newSubMenu.Click += AddToGroup;
-                cmAddToGroup.Items.Add(newSubMenu);
-                cmAddToGroup.IsEnabled = true;
-                newSubMenu = new MenuItem {Header = name};
-                newSubMenu.Click += DeleteGroup;
-                cmDeleteGroup.Items.Add(newSubMenu);
-                cmDeleteGroup.IsEnabled = true;
-
-                //Back end - actually make the new group
-                _attributeGroups.AddGroup(name, attributelist.ToArray());
-                RefreshAttributeLists();
-            }
-        }
-
-        //Removes currently selected attributes from their custom groups, restoring them to their default groups
-        private void RemoveFromGroup(object sender, RoutedEventArgs e)
-        {
-            ListBox lb = GetActiveAttributeGroupList();
-            if (lb == null)
-                return;
-            var attributelist = new List<string>();
-            foreach (object o in lb.SelectedItems)
-            {
-                attributelist.Add(o.ToString());
-            }
-            if (attributelist.Count > 0)
-            {
-                _attributeGroups.RemoveFromGroup(attributelist.ToArray());
-                RefreshAttributeLists();
-            }
-        }
-
-        //Adds currently selected attributes to an existing custom group named by sender.Header
-        private void AddToGroup(object sender, RoutedEventArgs e)
-        {
-            ListBox lb = GetActiveAttributeGroupList();
-            if (lb == null)
-                return;
-            var attributelist = new List<string>();
-            foreach (object o in lb.SelectedItems)
-            {
-                attributelist.Add(o.ToString());
-            }
-            if (attributelist.Count > 0)
-            {
-                _attributeGroups.AddGroup(((MenuItem)sender).Header.ToString(), attributelist.ToArray());
-                RefreshAttributeLists();
-            }
-        }
-
-        //Deletes the entire custom group named by sender.Header, restoring all contained attributes to their default groups
-        private void DeleteGroup(object sender, RoutedEventArgs e)
-        {
-            //Remove submenus that work with the group
-            for (int i = 0; i < cmAddToGroup.Items.Count; i++)
-            {
-                if (((MenuItem)cmAddToGroup.Items[i]).Header.ToString().ToLower().Equals(((MenuItem)sender).Header.ToString().ToLower()))
-                {
-                    cmAddToGroup.Items.RemoveAt(i);
-                    if (cmAddToGroup.Items.Count == 0)
-                        cmAddToGroup.IsEnabled = false;
-                    break;
-                }
-            }
-            for (int i = 0; i < cmDeleteGroup.Items.Count; i++)
-            {
-                if (((MenuItem)cmDeleteGroup.Items[i]).Header.ToString().ToLower().Equals(((MenuItem)sender).Header.ToString().ToLower()))
-                {
-                    cmDeleteGroup.Items.RemoveAt(i);
-                    if (cmDeleteGroup.Items.Count == 0)
-                        cmDeleteGroup.IsEnabled = false;
-                    break;
-                }
-            }
-
-            _attributeGroups.DeleteGroup(((MenuItem)sender).Header.ToString());
-            RefreshAttributeLists();
-        }
-
-        #endregion
 
         #region Window methods
 
@@ -379,51 +192,7 @@ namespace POESKillTree.Views
                 ItemDB.Index();
             });
 
-            var cmHighlight = new MenuItem
-            {
-                Header = L10n.Message("Highlight nodes by attribute")
-            };
-            cmHighlight.Click += HighlightNodesByAttribute;
-            var cmRemoveHighlight = new MenuItem
-            {
-                Header = L10n.Message("Remove highlights by attribute")
-            };
-            cmRemoveHighlight.Click += UnhighlightNodesByAttribute;
-            cmCreateGroup = new MenuItem();
-            cmCreateGroup.Header = "Create new group";
-            cmCreateGroup.Click += CreateGroup;
-            cmAddToGroup = new MenuItem();
-            cmAddToGroup.Header = "Add to group...";
-            cmAddToGroup.IsEnabled = false;
-            cmDeleteGroup = new MenuItem();
-            cmDeleteGroup.Header = "Delete group...";
-            cmDeleteGroup.IsEnabled = false;
-            cmRemoveFromGroup = new MenuItem();
-            cmRemoveFromGroup.Header = "Remove from group";
-            cmRemoveFromGroup.Click += RemoveFromGroup;
 
-            _attributeGroups = new GroupStringConverter();
-            _attributeContextMenu = new ContextMenu();
-            _attributeContextMenu.Items.Add(cmHighlight);
-            _attributeContextMenu.Items.Add(cmRemoveHighlight);
-            _attributeContextMenu.Items.Add(cmCreateGroup);
-            _attributeContextMenu.Items.Add(cmAddToGroup);
-            _attributeContextMenu.Items.Add(cmDeleteGroup);
-            _attributeContextMenu.Items.Add(cmRemoveFromGroup);
-
-            _attributeCollection = new ListCollectionView(_attiblist);
-            _attributeCollection.GroupDescriptions.Add(new PropertyGroupDescription("Text", _attributeGroups));
-            _attributeCollection.CustomSort = _attributeGroups;
-            listBox1.ItemsSource = _attributeCollection;
-            listBox1.SelectionMode = SelectionMode.Extended;
-            listBox1.ContextMenu = _attributeContextMenu;
-
-            _allAttributeCollection = new ListCollectionView(_allAttributesList);
-            _allAttributeCollection.GroupDescriptions.Add(new PropertyGroupDescription("Text", _attributeGroups));
-            _allAttributeCollection.CustomSort = _attributeGroups;
-            lbAllAttr.ItemsSource = _allAttributeCollection;
-            lbAllAttr.SelectionMode = SelectionMode.Extended;
-            lbAllAttr.ContextMenu = _attributeContextMenu;
 
             _defenceCollection = new ListCollectionView(_defenceList);
             _defenceCollection.GroupDescriptions.Add(new PropertyGroupDescription("Group"));
@@ -761,14 +530,11 @@ namespace POESKillTree.Views
 
         private async void Menu_CopyStats(object sender, RoutedEventArgs e)
         {
-            var sb = new StringBuilder();
-            foreach (var at in _attiblist)
-            {
-                sb.AppendLine(at.ToString());
-            }
+            var overview = AttributePanel.GetAttributesOverview();
+
             try
             {
-                Clipboard.SetText(sb.ToString());
+                Clipboard.SetText(overview);
             }
             catch (Exception ex)
             {
@@ -1052,107 +818,18 @@ namespace POESKillTree.Views
 
         public void UpdateUI()
         {
-            UpdateAttributeList();
-            UpdateAllAttributeList();
-            RefreshAttributeLists();
+            AttributePanel.UpdateAttributeList();
+            AttributePanel.UpdateAllAttributeList();
+            AttributePanel.RefreshAttributeLists();
             UpdateStatistics();
             UpdateClass();
             UpdatePoints();
-        }
-
-        public void UpdateAllAttributeList()
-        {
-            _allAttributesList.Clear();
-
-            if (_itemAttributes == null) return;
-
-            Dictionary<string, List<float>> attritemp = ViewModel.Tree.SelectedAttributesWithoutImplicit;
-
-            var itemAttris = _itemAttributes.NonLocalMods
-                .Select(m => new KeyValuePair<string, List<float>>(m.Attribute, m.Value))
-                .SelectMany(SkillTree.ExpandHybridAttributes);
-            foreach (var mod in itemAttris)
-            {
-                if (attritemp.ContainsKey(mod.Key))
-                {
-                    for (var i = 0; i < mod.Value.Count; i++)
-                    {
-                        attritemp[mod.Key][i] += mod.Value[i];
-                    }
-                }
-                else
-                {
-                    attritemp[mod.Key] = new List<float>(mod.Value);
-                }
-            }
-
-            foreach (var a in SkillTree.ImplicitAttributes(attritemp, ViewModel.Tree.Level))
-            {
-                var key = SkillTree.RenameImplicitAttributes.ContainsKey(a.Key)
-                    ? SkillTree.RenameImplicitAttributes[a.Key]
-                    : a.Key;
-
-                if (!attritemp.ContainsKey(key))
-                    attritemp[key] = new List<float>();
-                for (int i = 0; i < a.Value.Count; i++)
-                {
-                    if (attritemp.ContainsKey(key) && attritemp[key].Count > i)
-                        attritemp[key][i] += a.Value[i];
-                    else
-                    {
-                        attritemp[key].Add(a.Value[i]);
-                    }
-                }
-            }
-
-            foreach (var item in (attritemp.Select(InsertNumbersInAttributes)))
-            {
-                var a = new Attribute(item);
-                if (!CheckIfAttributeMatchesFilter(a)) continue;
-                _allAttributesList.Add(a);
-            }
         }
 
         public void UpdateClass()
         {
             ViewModel.CharacterClassIndex = ViewModel.Tree.Chartype;
             ViewModel.AscendancyClassIndex = ViewModel.Tree.AscType;
-        }
-
-        public void UpdateAttributeList()
-        {
-            _attiblist.Clear();
-            var copy = ViewModel.Tree.HighlightedAttributes == null ? null : new Dictionary<string, List<float>>(ViewModel.Tree.HighlightedAttributes);
-
-            foreach (var item in ViewModel.Tree.SelectedAttributes)
-            {
-                var a = new Attribute(InsertNumbersInAttributes(item));
-                if (!CheckIfAttributeMatchesFilter(a)) continue;
-                if (copy != null && copy.ContainsKey(item.Key))
-                {
-                    var citem = copy[item.Key];
-                    a.Deltas = item.Value.Zip(citem, (s, h) => s - h).ToArray();
-                    copy.Remove(item.Key);
-                }
-                else
-                {
-                    a.Deltas = (copy != null) ? item.Value.ToArray() : item.Value.Select(v => 0f).ToArray();
-                }
-                _attiblist.Add(a);
-            }
-
-            if (copy != null)
-            {
-                foreach (var item in copy)
-                {
-                    var a = new Attribute(InsertNumbersInAttributes(new KeyValuePair<string, List<float>>(item.Key, item.Value.Select(v => 0f).ToList())));
-                    if (!CheckIfAttributeMatchesFilter(a)) continue;
-                    a.Deltas = item.Value.Select((h) => 0 - h).ToArray();
-                    // if(item.Value.Count == 0)
-                    a.Missing = true;
-                    _attiblist.Add(a);
-                }
-            }
         }
 
         public void UpdatePoints()
@@ -1169,13 +846,13 @@ namespace POESKillTree.Views
             _defenceList.Clear();
             _offenceList.Clear();
 
-            if (_itemAttributes != null)
+            if (AttributePanel.ViewModel.ItemAttributes != null)
             {
-                Compute.Initialize(ViewModel.Tree, _itemAttributes);
+                Compute.Initialize(ViewModel.Tree, AttributePanel.ViewModel.ItemAttributes);
 
                 foreach (ListGroup group in Compute.Defense())
                 {
-                    foreach (var item in group.Properties.Select(InsertNumbersInAttributes))
+                    foreach (var item in group.Properties.Select(AttributePanel.InsertNumbersInAttributes))
                     {
                         AttributeGroup attributeGroup;
                         if (!_defenceListGroups.TryGetValue(group.Name, out attributeGroup))
@@ -1189,7 +866,7 @@ namespace POESKillTree.Views
 
                 foreach (ListGroup group in Compute.Offense())
                 {
-                    foreach (var item in group.Properties.Select(InsertNumbersInAttributes))
+                    foreach (var item in group.Properties.Select(AttributePanel.InsertNumbersInAttributes))
                     {
                         AttributeGroup attributeGroup;
                         if (!_offenceListGroups.TryGetValue(group.Name, out attributeGroup))
@@ -1204,35 +881,6 @@ namespace POESKillTree.Views
 
             _defenceCollection.Refresh();
             _offenceCollection.Refresh();
-        }
-
-        private string InsertNumbersInAttributes(KeyValuePair<string, List<float>> attrib)
-        {
-            string s = attrib.Key;
-            foreach (float f in attrib.Value)
-            {
-                s = _backreplace.Replace(s, f + "", 1);
-            }
-            return s;
-        }
-
-        private bool CheckIfAttributeMatchesFilter(Attribute a)
-        {
-            var filter = tbAttributesFilter.Text;
-            if (cbAttributesFilterRegEx.IsChecked == true)
-            {
-                try
-                {
-                    var regex = new Regex(filter, RegexOptions.IgnoreCase);
-                    if (!regex.IsMatch(a.Text)) return false;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            }
-            else if (!a.Text.Contains(filter, StringComparison.InvariantCultureIgnoreCase)) return false;
-            return true;
         }
 
         #endregion
@@ -1267,24 +915,6 @@ namespace POESKillTree.Views
             }
         }
 
-        private void HighlightNodesByAttribute(object sender, RoutedEventArgs e)
-        {
-            var listBox = _attributeContextMenu.PlacementTarget as ListBox;
-            if (listBox == null || !listBox.IsVisible) return;
-
-            var newHighlightedAttribute =
-                "^" + Regex.Replace(listBox.SelectedItem.ToString()
-                        .Replace(@"+", @"\+")
-                        .Replace(@"-", @"\-")
-                        .Replace(@"%", @"\%"), @"[0-9]*\.?[0-9]+", @"[0-9]*\.?[0-9]+") + "$";
-            ViewModel.Tree.HighlightNodesBySearch(newHighlightedAttribute, true, NodeHighlighter.HighlightState.FromAttrib);
-        }
-
-        private void UnhighlightNodesByAttribute(object sender, RoutedEventArgs e)
-        {
-            ViewModel.Tree.HighlightNodesBySearch("", true, NodeHighlighter.HighlightState.FromAttrib);
-        }
-
         private void expAttributes_MouseLeave(object sender, MouseEventArgs e)
         {
             SearchUpdate();
@@ -1301,32 +931,6 @@ namespace POESKillTree.Views
         private void ToggleBuilds()
         {
             _persistentData.Options.BuildsBarOpened = !_persistentData.Options.BuildsBarOpened;
-        }
-
-        private void tbAttributesFilter_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            FilterAttributeLists();
-        }
-
-        private void cbAttributesFilterRegEx_Click(object sender, RoutedEventArgs e)
-        {
-            FilterAttributeLists();
-        }
-
-        private void FilterAttributeLists()
-        {
-            if (cbAttributesFilterRegEx.IsChecked == true && !RegexTools.IsValidRegex(tbAttributesFilter.Text)) return;
-            UpdateAllAttributeList();
-            UpdateAttributeList();
-            RefreshAttributeLists();
-        }
-
-        private void tabControl1_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (tabItem1.IsSelected || tabItem3.IsSelected)
-                gAttributesFilter.Visibility = Visibility.Visible;
-            else
-                gAttributesFilter.Visibility = Visibility.Collapsed;
         }
 
         #endregion
@@ -1619,10 +1223,10 @@ namespace POESKillTree.Views
             if (_pauseLoadItemData)
                 return;
 
-            if (ItemAttributes != null)
+            if (AttributePanel.ViewModel.ItemAttributes != null)
             {
-                ItemAttributes.Equip.CollectionChanged -= ItemAttributesEquipCollectionChanged;
-                ItemAttributes.PropertyChanged -= ItemAttributesPropertyChanged;
+                AttributePanel.ViewModel.ItemAttributes.Equip.CollectionChanged -= ItemAttributesEquipCollectionChanged;
+                AttributePanel.ViewModel.ItemAttributes.PropertyChanged -= ItemAttributesPropertyChanged;
             }
 
             var itemData = _persistentData.CurrentBuild.ItemData;
@@ -1647,7 +1251,7 @@ namespace POESKillTree.Views
 
             itemAttributes.Equip.CollectionChanged += ItemAttributesEquipCollectionChanged;
             itemAttributes.PropertyChanged += ItemAttributesPropertyChanged;
-            ItemAttributes = itemAttributes;
+            AttributePanel.ViewModel.ItemAttributes = itemAttributes;
             UpdateUI();
         }
 
@@ -1659,7 +1263,7 @@ namespace POESKillTree.Views
         private void ItemAttributesEquipCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
         {
             _pauseLoadItemData = true;
-            _persistentData.CurrentBuild.ItemData = ItemAttributes.ToJsonString();
+            _persistentData.CurrentBuild.ItemData = AttributePanel.ViewModel.ItemAttributes.ToJsonString();
             _pauseLoadItemData = false;
         }
 
@@ -1830,7 +1434,7 @@ namespace POESKillTree.Views
             ViewModel.SkillTreeUrl = build.Url;
             SetLevelFromString(build.Level);
             await LoadItemData();
-            SetCustomGroups(build.CustomGroups);
+            AttributePanel.SetCustomGroups(build.CustomGroups);
         }
 
         private async Task NewBuild()
@@ -1860,7 +1464,7 @@ namespace POESKillTree.Views
                 currentOpenBuild.Url = ViewModel.SkillTreeUrl;
                 currentOpenBuild.ItemData = _persistentData.CurrentBuild.ItemData;
                 currentOpenBuild.LastUpdated = DateTime.Now;
-                currentOpenBuild.CustomGroups = _attributeGroups.CopyCustomGroups();
+                currentOpenBuild.CustomGroups = AttributePanel.ViewModel.AttributeGroups.CopyCustomGroups();
                 currentOpenBuild.Bandits = _persistentData.CurrentBuild.Bandits.Clone();
                 currentOpenBuild.League = _persistentData.CurrentBuild.League;
                 await SetCurrentBuild(currentOpenBuild);
@@ -1884,7 +1488,7 @@ namespace POESKillTree.Views
             newBuild.Class = ViewModel.CharacterClass;
             newBuild.PointsUsed = NormalUsedPoints.Content.ToString();
             newBuild.Url = ViewModel.SkillTreeUrl;
-            newBuild.CustomGroups = _attributeGroups.CopyCustomGroups();
+            newBuild.CustomGroups = AttributePanel.ViewModel.AttributeGroups.CopyCustomGroups();
 
             await SetCurrentBuild(newBuild);
             lvSavedBuilds.Items.Add(newBuild);

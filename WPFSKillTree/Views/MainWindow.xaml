@@ -19,29 +19,6 @@
         d:DataContext="{d:DesignInstance conv:MainViewModel}"
         >
     <Window.Resources>
-        <conv:AttributeToTextblockConverter x:Key="attributeToTextblockConverter" />
-        <Style x:Key="ContainerStyleIsExpanded" TargetType="{x:Type GroupItem}">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate>
-                        <Expander Header="{Binding Name}" IsExpanded="{Binding Name.IsExpanded}" FontSize="12" Width="370">
-                            <ItemsPresenter />
-                        </Expander>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="ContainerStyle" TargetType="{x:Type GroupItem}">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate>
-                        <Expander Header="{Binding Name}" IsExpanded="True" FontSize="12" Width="370">
-                            <ItemsPresenter />
-                        </Expander>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
         <Style x:Key="TopRowExpander" TargetType="Expander" BasedOn="{StaticResource {x:Type Expander}}">
             <Setter Property="Margin" Value="0 -30 0 0" />
             <Setter Property="Padding" Value="0" />
@@ -813,98 +790,7 @@
                 <Expander.Header>
                     <l:Catalog Message="Attributes"/>
                 </Expander.Header>
-                <Grid Background="{DynamicResource WhiteColorBrush}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto"></RowDefinition>
-                        <RowDefinition Height="*"></RowDefinition>
-                    </Grid.RowDefinitions>
-                    <Grid Grid.Row="0" x:Name="gAttributesFilter">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="40"/>
-                            <ColumnDefinition Width="280"/>
-                            <ColumnDefinition Width="60"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0">
-                            <l:Catalog Message="Filter:"/>
-                        </Label>
-                        <TextBox Height="26" x:Name="tbAttributesFilter" Width="auto" Margin="5,0,0,0" Grid.Column="1" TextChanged="tbAttributesFilter_TextChanged" />
-                        <CheckBox Grid.Column="2" Content="RegEx" Height="28" HorizontalAlignment="Left" Margin="5,0,0,0" x:Name="cbAttributesFilterRegEx" VerticalAlignment="Bottom" VerticalContentAlignment="Center" Click="cbAttributesFilterRegEx_Click" />
-                    </Grid>
-                    <Grid Grid.Row="1">
-                        <TabControl Margin="0" x:Name="tabControl1" HorizontalAlignment="Left" Width="410" controls:TabControlHelper.IsUnderlined="True" Focusable="True" SelectionChanged="tabControl1_SelectionChanged">
-                            <TabItem Margin="0" x:Name="tabItem1" controls:ControlsHelper.HeaderFontSize="15">
-                                <TabItem.Header>
-                                    <l:Catalog Message="Passive Attributes"/>
-                                </TabItem.Header>
-                                <Grid ScrollViewer.HorizontalScrollBarVisibility="Hidden">
-                                    <ListBox ScrollViewer.CanContentScroll="False" Height="{Binding ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" HorizontalAlignment="Center" x:Name="listBox1" VerticalAlignment="Top" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" ItemsSource="{Binding}" ScrollViewer.HorizontalScrollBarVisibility="Hidden" >
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <ContentControl Content="{Binding Converter={StaticResource attributeToTextblockConverter}}"/>
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                        <ListBox.GroupStyle>
-                                            <GroupStyle ContainerStyle="{StaticResource ContainerStyleIsExpanded}" />
-                                        </ListBox.GroupStyle>
-                                    </ListBox>
-                                </Grid>
-                            </TabItem>
-                            <TabItem Margin="0" x:Name="tabItem2" controls:ControlsHelper.HeaderFontSize="15">
-                                <TabItem.Header>
-                                    <l:Catalog Message="Item Attributes"/>
-                                </TabItem.Header>
-                                <Grid>
-                                    <ListBox ScrollViewer.CanContentScroll="False"  ItemsSource="{Binding ItemAttributes.Attributes, ElementName=window, Mode=OneWay}"  Height="{Binding ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" x:Name="lbItemAttr" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate DataType="{x:Type items:ItemAttributes+Attribute}">
-                                                <StackPanel>
-                                                    <TextBlock><Run Text="{Binding ValuedAttribute, Mode=OneWay}" /><Run Text=" " /></TextBlock>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                        <ListBox.GroupStyle>
-                                            <GroupStyle ContainerStyle="{StaticResource ContainerStyleIsExpanded}" />
-                                        </ListBox.GroupStyle>
-                                    </ListBox>
-                                </Grid>
-                            </TabItem>
-                            <TabItem Margin="0" x:Name="tabItem3" controls:ControlsHelper.HeaderFontSize="15">
-                                <TabItem.Header>
-                                    <l:Catalog Message="Total Attributes"/>
-                                </TabItem.Header>
-                                <Grid>
-                                    <ListBox ScrollViewer.CanContentScroll="False" Height="{Binding ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" x:Name="lbAllAttr" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Text}" TextWrapping="Wrap"/>
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                        <ListBox.GroupStyle>
-                                            <GroupStyle ContainerStyle="{StaticResource ContainerStyleIsExpanded}" />
-                                        </ListBox.GroupStyle>
-                                    </ListBox>
-                                </Grid>
-                            </TabItem>
-                            <TabItem Margin="0" x:Name="tabItem4" controls:ControlsHelper.HeaderFontSize="15">
-                                <TabItem.Header>
-                                    <l:Catalog Message="ItemList" />
-                                </TabItem.Header>
-                                <Grid>
-                                    <ListBox ScrollViewer.CanContentScroll="False"  ItemsSource="{Binding ItemAttributes.Equip, ElementName=window, Mode=OneWay}" Height="{Binding ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" x:Name="lbItemList" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate DataType="items:Item">
-                                                <local:ItemTooltip Item="{Binding}"/>
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                        <ListBox.GroupStyle>
-                                            <GroupStyle ContainerStyle="{StaticResource ContainerStyleIsExpanded}" />
-                                        </ListBox.GroupStyle>
-                                    </ListBox>
-                                </Grid>
-                            </TabItem>
-                        </TabControl>
-                    </Grid>
-                </Grid>
+                <local:AttributePanel x:Name="AttributePanel"></local:AttributePanel>
             </Expander>
 
             <Expander Margin="108 -30 0 0" Style="{StaticResource TopRowExpander}"

@@ -1,0 +1,121 @@
+﻿<UserControl x:Class="POESKillTree.Controls.AttributePanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:POESKillTree.Controls"
+             xmlns:xaml="clr-namespace:POESKillTree.Localization.XAML"
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             xmlns:items="clr-namespace:POESKillTree.Model.Items"
+             xmlns:viewModels="clr-namespace:POESKillTree.ViewModels"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="400"
+             d:DataContext="{d:DesignInstance viewModels:AttributePanelViewModel}">
+    <UserControl.Resources>
+
+        <viewModels:AttributeToTextblockConverter x:Key="attributeToTextblockConverter" />
+        <Style x:Key="ContainerStyle" TargetType="{x:Type GroupItem}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Expander Header="{Binding Name}" IsExpanded="True" FontSize="12" Width="370">
+                            <ItemsPresenter />
+                        </Expander>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <Grid Background="{DynamicResource WhiteColorBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0" Visibility="{Binding FilterVisibility}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="40"/>
+                <ColumnDefinition Width="280"/>
+                <ColumnDefinition Width="60"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0">
+                <xaml:Catalog Message="Filter:"/>
+            </Label>
+            <TextBox Height="26" Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}" Width="auto" Margin="5,0,0,0" Grid.Column="1" TextChanged="tbAttributesFilter_TextChanged" />
+            <CheckBox Grid.Column="2" Content="RegEx" Height="28" HorizontalAlignment="Left" Margin="5,0,0,0" IsChecked="{Binding FilterRegexEnabled}" VerticalAlignment="Bottom" VerticalContentAlignment="Center" Click="cbAttributesFilterRegEx_Click" />
+        </Grid>
+        <Grid Grid.Row="1">
+            <TabControl Margin="0" x:Name="tabControl1" HorizontalAlignment="Left" Width="410" controls:TabControlHelper.IsUnderlined="True" Focusable="True" SelectionChanged="tabControl1_SelectionChanged">
+                <TabItem Margin="0" x:Name="tabItem1" controls:ControlsHelper.HeaderFontSize="15">
+                    <TabItem.Header>
+                        <xaml:Catalog Message="Passive Attributes"/>
+                    </TabItem.Header>
+                    <Grid ScrollViewer.HorizontalScrollBarVisibility="Hidden">
+                        <ListBox ScrollViewer.CanContentScroll="False" Height="{Binding ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" HorizontalAlignment="Center" x:Name="listBox1" ItemsSource="{Binding AttributesCollection}" SelectionMode="Extended" VerticalAlignment="Top" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" ScrollViewer.HorizontalScrollBarVisibility="Hidden" >
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <ContentControl Content="{Binding Converter={StaticResource attributeToTextblockConverter}}"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                            <ListBox.GroupStyle>
+                                <GroupStyle ContainerStyle="{StaticResource ContainerStyleIsExpanded}" />
+                            </ListBox.GroupStyle>
+                        </ListBox>
+                    </Grid>
+                </TabItem>
+                <TabItem Margin="0" controls:ControlsHelper.HeaderFontSize="15">
+                    <TabItem.Header>
+                        <xaml:Catalog Message="Item Attributes"/>
+                    </TabItem.Header>
+                    <Grid>
+                        <ListBox ScrollViewer.CanContentScroll="False"  ItemsSource="{Binding ItemAttributes.Attributes, ElementName=window, Mode=OneWay}"  Height="{Binding ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" x:Name="lbItemAttr" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="{x:Type items:ItemAttributes+Attribute}">
+                                    <StackPanel>
+                                        <TextBlock><Run Text="{Binding ValuedAttribute, Mode=OneWay}" /><Run Text=" " /></TextBlock>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                            <ListBox.GroupStyle>
+                                <GroupStyle ContainerStyle="{StaticResource ContainerStyleIsExpanded}" />
+                            </ListBox.GroupStyle>
+                        </ListBox>
+                    </Grid>
+                </TabItem>
+                <TabItem Margin="0" x:Name="tabItem3" controls:ControlsHelper.HeaderFontSize="15">
+                    <TabItem.Header>
+                        <xaml:Catalog Message="Total Attributes"/>
+                    </TabItem.Header>
+                    <Grid>
+                        <ListBox ScrollViewer.CanContentScroll="False" Height="{Binding ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" x:Name="lbAllAttr" ItemsSource="{Binding AllAttributesCollection}" SelectionMode="Extended" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="viewModels:Attribute">
+                                    <TextBlock Text="{Binding Text}" TextWrapping="Wrap"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                            <ListBox.GroupStyle>
+                                <GroupStyle ContainerStyle="{StaticResource ContainerStyleIsExpanded}" />
+                            </ListBox.GroupStyle>
+                        </ListBox>
+                    </Grid>
+                </TabItem>
+                <TabItem Margin="0" controls:ControlsHelper.HeaderFontSize="15">
+                    <TabItem.Header>
+                        <xaml:Catalog Message="ItemList" />
+                    </TabItem.Header>
+                    <Grid>
+                        <ListBox ScrollViewer.CanContentScroll="False"  ItemsSource="{Binding ItemAttributes.Equip, ElementName=window, Mode=OneWay}" Height="{Binding ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" x:Name="lbItemList" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="items:Item">
+                                    <local:ItemTooltip Item="{Binding}"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                            <ListBox.GroupStyle>
+                                <GroupStyle ContainerStyle="{StaticResource ContainerStyleIsExpanded}" />
+                            </ListBox.GroupStyle>
+                        </ListBox>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </Grid>
+</UserControl>
