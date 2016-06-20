@@ -980,7 +980,8 @@
             <TextBox Grid.Column="5" Height="24" Margin="1,0,2.854,2" VerticalAlignment="Bottom" Text="{Binding SkillTreeUrl}" Name="SkillTreeUrlTextBox"
                      VerticalContentAlignment="Center" MouseDoubleClick="tbSkillURL_MouseDoubleClick" TextChanged="tbSkillURL_TextChanged" KeyUp="tbSkillURL_KeyUp" />
 
-            <Button Grid.Column="6" Height="24" HorizontalAlignment="Right" x:Name="btnLoadBuild" IsEnabled="{Binding NoAsyncTaskRunning, ElementName=window}" VerticalAlignment="Bottom" MinWidth="75" Click="btnLoadBuild_Click" Margin="0,0,2,2">
+            <Button Grid.Column="6" Height="24" HorizontalAlignment="Right"
+                    IsEnabled="{Binding NoAsyncTaskRunning, ElementName=window}" VerticalAlignment="Bottom" MinWidth="75" Click="btnLoadBuild_Click" Margin="0,0,2,2">
                 <l:Catalog Message="Load Tree"/>
             </Button>
         </Grid>

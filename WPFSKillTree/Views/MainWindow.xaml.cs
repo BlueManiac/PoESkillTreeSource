@@ -1160,8 +1160,8 @@ namespace POESKillTree.Views
             Dictionary<string, int> points = ViewModel.Tree.GetPointCount();
             NormalUsedPoints.Content = points["NormalUsed"].ToString();
             NormalTotalPoints.Content = points["NormalTotal"].ToString();
-            AscendancyUsedPoints.Content = "[" + points["AscendancyUsed"].ToString() + "]";
-            AscendancyTotalPoints.Content = "[" + points["AscendancyTotal"].ToString() + "]";
+            AscendancyUsedPoints.Content = "[" + points["AscendancyUsed"] + "]";
+            AscendancyTotalPoints.Content = "[" + points["AscendancyTotal"] + "]";
         }
 
         public void UpdateStatistics()
@@ -2395,7 +2395,7 @@ namespace POESKillTree.Views
                 SkillTree.DecodeURL(build.Url, out nodes, out ctype, out atype);
 
                 ViewModel.Tree.HighlightedNodes = nodes;
-                int level = 0;
+                int level;
                 try
                 {
                     level = int.Parse(build.Level);
@@ -2433,7 +2433,7 @@ namespace POESKillTree.Views
 
             Stash.Items.Add(item);
 
-            Stash.AddHighlightRange(new IntRange() { From = item.Y, Range = item.Height });
+            Stash.AddHighlightRange(new IntRange { From = item.Y, Range = item.Height });
             Stash.asBar.Value = item.Y;
         }
 
