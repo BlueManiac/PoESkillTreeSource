@@ -445,7 +445,7 @@ namespace POESKillTree.Views
             listBoxOffence.ItemsSource = _offenceCollection;
 
             ViewModel.CharacterClasses = CharacterNames.NameToContent.Select(x => x.Value).ToList();
-            cbAscType.SelectedIndex = 0;
+            ViewModel.AscendancyClassIndex = 0;
 
             if (_persistentData.StashBookmarks != null)
                 Stash.Bookmarks = new System.Collections.ObjectModel.ObservableCollection<StashBookmark>(_persistentData.StashBookmarks);
@@ -524,7 +524,7 @@ namespace POESKillTree.Views
                         userInteraction = true;
                         var index = int.Parse(e.Key.ToString().Substring(1)) - 1;
                         ViewModel.CharacterClass = ViewModel.CharacterClasses[index];
-                        cbAscType.SelectedIndex = 0;
+                        ViewModel.AscendancyClassIndex = 0;
                         break;
                     case Key.Z:
                         tbSkillURL_Undo();
@@ -989,17 +989,17 @@ namespace POESKillTree.Views
             Tree.LoadFromURL(tbSkillURL.Text);
             userInteraction = false;
             PopulateAsendancySelectionList();
-            cbAscType.SelectedIndex = Tree.AscType = 0;
+            ViewModel.AscendancyClassIndex = Tree.AscType = 0;
         }
 
         private void cbAscType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (!userInteraction)
                 return;
-            if (cbAscType.SelectedIndex < 0 || cbAscType.SelectedIndex > 3)
+            if (ViewModel.AscendancyClassIndex < 0 || ViewModel.AscendancyClassIndex > 3)
                 return;
 
-            Tree.AscType = cbAscType.SelectedIndex;
+            Tree.AscType = ViewModel.AscendancyClassIndex;
 
             UpdateUI();
             tbSkillURL.Text = Tree.SaveToURL();
@@ -1012,10 +1012,11 @@ namespace POESKillTree.Views
             if (!Tree.UpdateAscendancyClasses) return;
 
             Tree.UpdateAscendancyClasses = false;
-            var ascendancyItems = new List<string> { "None" };
-            foreach (var name in Tree.AscendancyClasses.GetClasses(ViewModel.CharacterClass))
-                ascendancyItems.Add(name.DisplayName);
-            cbAscType.ItemsSource = ascendancyItems.Select(x => new ComboBoxItem { Name = x, Content = x });
+
+            ViewModel.AscendancyClasses = Enumerable
+                .Repeat("None", 1)
+                .Concat(Tree.AscendancyClasses.GetClasses(ViewModel.CharacterClass).Select(x => x.DisplayName))
+                .ToList();
         }
 
         private string GetLevelAsString()
@@ -1126,7 +1127,7 @@ namespace POESKillTree.Views
         public void UpdateClass()
         {
             ViewModel.CharacterClassIndex = Tree.Chartype;
-            cbAscType.SelectedIndex = Tree.AscType;
+            ViewModel.AscendancyClassIndex = Tree.AscType;
         }
 
         public void UpdateAttributeList()

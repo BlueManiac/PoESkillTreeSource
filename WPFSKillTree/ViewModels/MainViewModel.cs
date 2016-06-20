@@ -13,5 +13,7 @@ namespace POESKillTree.ViewModels
         public int CharacterClassIndex { get; set; }
         public string CharacterClass { get; set; }
         public List<string> CharacterClasses { get; set; }
+        public int AscendancyClassIndex { get; set; }
+        public List<string> AscendancyClasses { get; set; }
     }
 }
