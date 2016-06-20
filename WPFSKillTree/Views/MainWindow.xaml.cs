@@ -154,9 +154,13 @@ namespace POESKillTree.Views
         private static readonly string MainWindowTitle =
             FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).ProductName;
 
+        public MainViewModel ViewModel => DataContext as MainViewModel;
+
         public MainWindow()
         {
             InitializeComponent();
+
+            DataContext = new MainViewModel();
 
             // Register handlers
             PersistentData.CurrentBuild.PropertyChanged += CurrentBuildOnPropertyChanged;
@@ -440,9 +444,7 @@ namespace POESKillTree.Views
             _offenceCollection.GroupDescriptions.Add(new PropertyGroupDescription("Group"));
             listBoxOffence.ItemsSource = _offenceCollection;
 
-            cbCharType.ItemsSource =
-                CharacterNames.NameToContent.Select(
-                    x => new ComboBoxItem {Name = x.Key, Content = x.Value});
+            ViewModel.CharacterClasses = CharacterNames.NameToContent.Select(x => x.Value).ToList();
             cbAscType.SelectedIndex = 0;
 
             if (_persistentData.StashBookmarks != null)
@@ -513,38 +515,15 @@ namespace POESKillTree.Views
                         btnPoeUrl_Click(sender, e);
                         break;
                     case Key.D1:
-                        userInteraction = true;
-                        cbCharType.SelectedIndex = 0;
-                        cbAscType.SelectedIndex = 0;
-                        break;
                     case Key.D2:
-                        userInteraction = true;
-                        cbCharType.SelectedIndex = 1;
-                        cbAscType.SelectedIndex = 0;
-                        break;
                     case Key.D3:
-                        userInteraction = true;
-                        cbCharType.SelectedIndex = 2;
-                        cbAscType.SelectedIndex = 0;
-                        break;
                     case Key.D4:
-                        userInteraction = true;
-                        cbCharType.SelectedIndex = 3;
-                        cbAscType.SelectedIndex = 0;
-                        break;
                     case Key.D5:
-                        userInteraction = true;
-                        cbCharType.SelectedIndex = 4;
-                        cbAscType.SelectedIndex = 0;
-                        break;
                     case Key.D6:
-                        userInteraction = true;
-                        cbCharType.SelectedIndex = 5;
-                        cbAscType.SelectedIndex = 0;
-                        break;
                     case Key.D7:
                         userInteraction = true;
-                        cbCharType.SelectedIndex = 6;
+                        var index = int.Parse(e.Key.ToString().Substring(1)) - 1;
+                        ViewModel.CharacterClass = ViewModel.CharacterClasses[index];
                         cbAscType.SelectedIndex = 0;
                         break;
                     case Key.Z:
@@ -623,7 +602,7 @@ namespace POESKillTree.Views
         #endregion
 
         #region Menu
-        
+
         private async void Menu_NewBuild(object sender, RoutedEventArgs e)
         {
             await NewBuild();
@@ -1001,10 +980,10 @@ namespace POESKillTree.Views
                 return;
              if (!userInteraction)
                  return;
-             if (Tree.Chartype == cbCharType.SelectedIndex) return;
+             if (Tree.Chartype == ViewModel.CharacterClassIndex) return;
 
-            Tree.Chartype = cbCharType.SelectedIndex;
-            
+            Tree.Chartype = ViewModel.CharacterClassIndex;
+
             UpdateUI();
             tbSkillURL.Text = Tree.SaveToURL();
             Tree.LoadFromURL(tbSkillURL.Text);
@@ -1034,7 +1013,7 @@ namespace POESKillTree.Views
 
             Tree.UpdateAscendancyClasses = false;
             var ascendancyItems = new List<string> { "None" };
-            foreach (var name in Tree.AscendancyClasses.GetClasses(((ComboBoxItem)cbCharType.SelectedItem).Content.ToString()))
+            foreach (var name in Tree.AscendancyClasses.GetClasses(ViewModel.CharacterClass))
                 ascendancyItems.Add(name.DisplayName);
             cbAscType.ItemsSource = ascendancyItems.Select(x => new ComboBoxItem { Name = x, Content = x });
         }
@@ -1135,7 +1114,7 @@ namespace POESKillTree.Views
                     }
                 }
             }
-            
+
             foreach (var item in (attritemp.Select(InsertNumbersInAttributes)))
             {
                 var a = new Attribute(item);
@@ -1146,7 +1125,7 @@ namespace POESKillTree.Views
 
         public void UpdateClass()
         {
-            cbCharType.SelectedIndex = Tree.Chartype;
+            ViewModel.CharacterClassIndex = Tree.Chartype;
             cbAscType.SelectedIndex = Tree.AscType;
         }
 
@@ -1154,7 +1133,7 @@ namespace POESKillTree.Views
         {
             _attiblist.Clear();
             var copy = (Tree.HighlightedAttributes == null) ? null : new Dictionary<string, List<float>>(Tree.HighlightedAttributes);
-            
+
             foreach (var item in Tree.SelectedAttributes)
             {
                 var a = new Attribute(InsertNumbersInAttributes(item));
@@ -1519,7 +1498,7 @@ namespace POESKillTree.Views
 
             _hoveredNode = node;
             if (node != null && !SkillTree.rootNodeList.Contains(node.Id))
-            {         
+            {
                 if (!Tree.drawAscendancy && node.ascendancyName != null)
                     return;
                 if (!_persistentData.Options.ShowAllAscendancyClasses && node.ascendancyName != null && node.ascendancyName != Tree.AscendancyClasses.GetClassName(className, Tree.AscType))
@@ -1528,7 +1507,7 @@ namespace POESKillTree.Views
                 {
                     Tree.DrawJewelHighlight(node);
                 }
-                
+
                 if (Tree.SkilledNodes.Contains(node.Id))
                 {
                     _toRemove = Tree.ForceRefundNodePreview(node.Id);
@@ -1883,7 +1862,7 @@ namespace POESKillTree.Views
                  select build).FirstOrDefault();
             if (currentOpenBuild != null)
             {
-                currentOpenBuild.Class = cbCharType.Text;
+                currentOpenBuild.Class = ViewModel.CharacterClass;
                 currentOpenBuild.CharacterName = _persistentData.CurrentBuild.CharacterName;
                 currentOpenBuild.AccountName = _persistentData.CurrentBuild.AccountName;
                 currentOpenBuild.Level = GetLevelAsString();
@@ -1912,7 +1891,7 @@ namespace POESKillTree.Views
             var newBuild = vm.Build;
             newBuild.LastUpdated = DateTime.Now;
             newBuild.Level = GetLevelAsString();
-            newBuild.Class = cbCharType.Text;
+            newBuild.Class = ViewModel.CharacterClass;
             newBuild.PointsUsed = NormalUsedPoints.Content.ToString();
             newBuild.Url = tbSkillURL.Text;
             newBuild.CustomGroups = _attributeGroups.CopyCustomGroups();
@@ -2062,7 +2041,7 @@ namespace POESKillTree.Views
             var data = new DataObject("myFormat", item);
             DragDrop.DoDragDrop(lvSavedBuilds, data, DragDropEffects.Move);
 
-            //cleanup 
+            //cleanup
             listView.PreviewDragOver -= ListViewDragOver;
             listView.DragLeave -= ListViewDragLeave;
             listView.DragEnter -= ListViewDragEnter;
