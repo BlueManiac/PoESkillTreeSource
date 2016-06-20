@@ -570,7 +570,7 @@ namespace POESKillTree.Views
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            _persistentData.CurrentBuild.Url = tbSkillURL.Text;
+            _persistentData.CurrentBuild.Url = ViewModel.SkillTreeUrl;
             _persistentData.CurrentBuild.Level = GetLevelAsString();
             _persistentData.SetBuilds(lvSavedBuilds.Items);
             _persistentData.StashBookmarks = Stash.Bookmarks.ToList();
@@ -601,8 +601,8 @@ namespace POESKillTree.Views
         {
             await ViewModel.Tree.SkillAllTaggedNodesAsync();
             UpdateUI();
-            tbSkillURL.Text = ViewModel.Tree.SaveToURL();
-            ViewModel.Tree.LoadFromURL(tbSkillURL.Text);
+            ViewModel.SkillTreeUrl = ViewModel.Tree.SaveToURL();
+            ViewModel.Tree.LoadFromURL(ViewModel.SkillTreeUrl);
         }
 
         private async void Menu_UntagAllNodes(object sender, RoutedEventArgs e)
@@ -639,8 +639,8 @@ namespace POESKillTree.Views
                     vm.RunFinished += (o, args) =>
                     {
                         UpdateUI();
-                        tbSkillURL.Text = ViewModel.Tree.SaveToURL();
-                        ViewModel.Tree.LoadFromURL(tbSkillURL.Text);
+                        ViewModel.SkillTreeUrl = ViewModel.Tree.SaveToURL();
+                        ViewModel.Tree.LoadFromURL(ViewModel.SkillTreeUrl);
                     };
                     _settingsWindow = new SettingsWindow { DataContext = vm};
                     DialogParticipation.SetRegister(_settingsWindow, vm);
@@ -974,8 +974,8 @@ namespace POESKillTree.Views
             ViewModel.Tree.Chartype = ViewModel.CharacterClassIndex;
 
             UpdateUI();
-            tbSkillURL.Text = ViewModel.Tree.SaveToURL();
-            ViewModel.Tree.LoadFromURL(tbSkillURL.Text);
+            ViewModel.SkillTreeUrl = ViewModel.Tree.SaveToURL();
+            ViewModel.Tree.LoadFromURL(ViewModel.SkillTreeUrl);
             ViewModel.UserInteraction = false;
             PopulateAsendancySelectionList();
             ViewModel.AscendancyClassIndex = ViewModel.Tree.AscType = 0;
@@ -991,8 +991,8 @@ namespace POESKillTree.Views
             ViewModel.Tree.AscType = ViewModel.AscendancyClassIndex;
 
             UpdateUI();
-            tbSkillURL.Text = ViewModel.Tree.SaveToURL();
-            ViewModel.Tree.LoadFromURL(tbSkillURL.Text);
+            ViewModel.SkillTreeUrl = ViewModel.Tree.SaveToURL();
+            ViewModel.Tree.LoadFromURL(ViewModel.SkillTreeUrl);
             ViewModel.UserInteraction = false;
         }
 
@@ -1042,8 +1042,8 @@ namespace POESKillTree.Views
                 return;
             ViewModel.Tree.Reset();
             UpdateUI();
-            tbSkillURL.Text = ViewModel.Tree.SaveToURL();
-            ViewModel.Tree.LoadFromURL(tbSkillURL.Text);
+            ViewModel.SkillTreeUrl = ViewModel.Tree.SaveToURL();
+            ViewModel.Tree.LoadFromURL(ViewModel.SkillTreeUrl);
         }
 
         #endregion
@@ -1122,7 +1122,7 @@ namespace POESKillTree.Views
         public void UpdateAttributeList()
         {
             _attiblist.Clear();
-            var copy = (ViewModel.Tree.HighlightedAttributes == null) ? null : new Dictionary<string, List<float>>(ViewModel.Tree.HighlightedAttributes);
+            var copy = ViewModel.Tree.HighlightedAttributes == null ? null : new Dictionary<string, List<float>>(ViewModel.Tree.HighlightedAttributes);
 
             foreach (var item in ViewModel.Tree.SelectedAttributes)
             {
@@ -1430,8 +1430,8 @@ namespace POESKillTree.Views
                         }
                     }
                 }
-                tbSkillURL.Text = ViewModel.Tree.SaveToURL();
-                ViewModel.Tree.LoadFromURL(tbSkillURL.Text);
+                ViewModel.SkillTreeUrl = ViewModel.Tree.SaveToURL();
+                ViewModel.Tree.LoadFromURL(ViewModel.SkillTreeUrl);
                 UpdateUI();
             }
             else if ((ViewModel.Tree.ascedancyButtonPos - v).Length < 150)
@@ -1827,7 +1827,7 @@ namespace POESKillTree.Views
 
             _persistentData.CurrentBuild = PoEBuild.Copy(build);
 
-            tbSkillURL.Text = build.Url;
+            ViewModel.SkillTreeUrl = build.Url;
             SetLevelFromString(build.Level);
             await LoadItemData();
             SetCustomGroups(build.CustomGroups);
@@ -1857,7 +1857,7 @@ namespace POESKillTree.Views
                 currentOpenBuild.AccountName = _persistentData.CurrentBuild.AccountName;
                 currentOpenBuild.Level = GetLevelAsString();
                 currentOpenBuild.PointsUsed = NormalUsedPoints.Content.ToString();
-                currentOpenBuild.Url = tbSkillURL.Text;
+                currentOpenBuild.Url = ViewModel.SkillTreeUrl;
                 currentOpenBuild.ItemData = _persistentData.CurrentBuild.ItemData;
                 currentOpenBuild.LastUpdated = DateTime.Now;
                 currentOpenBuild.CustomGroups = _attributeGroups.CopyCustomGroups();
@@ -1883,7 +1883,7 @@ namespace POESKillTree.Views
             newBuild.Level = GetLevelAsString();
             newBuild.Class = ViewModel.CharacterClass;
             newBuild.PointsUsed = NormalUsedPoints.Content.ToString();
-            newBuild.Url = tbSkillURL.Text;
+            newBuild.Url = ViewModel.SkillTreeUrl;
             newBuild.CustomGroups = _attributeGroups.CopyCustomGroups();
 
             await SetCurrentBuild(newBuild);
@@ -1916,25 +1916,25 @@ namespace POESKillTree.Views
             try
             {
                 ViewModel.UserInteraction = true;
-                if (tbSkillURL.Text.Contains("poezone.ru"))
+                if (ViewModel.SkillTreeUrl.Contains("poezone.ru"))
                 {
-                    await SkillTreeImporter.LoadBuildFromPoezone(DialogCoordinator.Instance, ViewModel.Tree, tbSkillURL.Text);
-                    tbSkillURL.Text = ViewModel.Tree.SaveToURL();
+                    await SkillTreeImporter.LoadBuildFromPoezone(DialogCoordinator.Instance, ViewModel.Tree, ViewModel.SkillTreeUrl);
+                    ViewModel.SkillTreeUrl = ViewModel.Tree.SaveToURL();
                 }
-                else if (tbSkillURL.Text.Contains("google.com"))
+                else if (ViewModel.SkillTreeUrl.Contains("google.com"))
                 {
-                    Match match = Regex.Match(tbSkillURL.Text, @"q=(.*?)&");
+                    Match match = Regex.Match(ViewModel.SkillTreeUrl, @"q=(.*?)&");
                     if (match.Success)
                     {
-                        tbSkillURL.Text = match.ToString().Replace("q=", "").Replace("&", "");
+                        ViewModel.SkillTreeUrl = match.ToString().Replace("q=", "").Replace("&", "");
                         await LoadBuildFromUrlAsync();
                     }
                     else
                         throw new Exception("The URL you are trying to load is invalid.");
                 }
-                else if (tbSkillURL.Text.Contains("tinyurl.com") || tbSkillURL.Text.Contains("poeurl.com"))
+                else if (ViewModel.SkillTreeUrl.Contains("tinyurl.com") || ViewModel.SkillTreeUrl.Contains("poeurl.com"))
                 {
-                    var skillUrl = tbSkillURL.Text.Replace("preview.", "");
+                    var skillUrl = ViewModel.SkillTreeUrl.Replace("preview.", "");
                     if (skillUrl.Contains("poeurl.com") && !skillUrl.Contains("redirect.php"))
                     {
                         skillUrl = skillUrl.Replace("http://poeurl.com/",
@@ -1946,17 +1946,17 @@ namespace POESKillTree.Views
                             new HttpClient().GetAsync(skillUrl, HttpCompletionOption.ResponseHeadersRead));
                     response.EnsureSuccessStatusCode();
                     if (Regex.IsMatch(response.RequestMessage.RequestUri.ToString(), Constants.TreeRegex))
-                        tbSkillURL.Text = response.RequestMessage.RequestUri.ToString();
+                        ViewModel.SkillTreeUrl = response.RequestMessage.RequestUri.ToString();
                     else
                         throw new Exception("The URL you are trying to load is invalid.");
                     await LoadBuildFromUrlAsync();
                 }
                 else
                 {
-                    if (tbSkillURL.Text.Contains("characterName") || tbSkillURL.Text.Contains("accountName"))
-                        tbSkillURL.Text = Regex.Replace(tbSkillURL.Text, @"\?.*", "");
-                    tbSkillURL.Text = Regex.Replace(tbSkillURL.Text, Constants.TreeRegex, Constants.TreeAddress);
-                    ViewModel.Tree.LoadFromURL(tbSkillURL.Text);
+                    if (ViewModel.SkillTreeUrl.Contains("characterName") || ViewModel.SkillTreeUrl.Contains("accountName"))
+                        ViewModel.SkillTreeUrl = Regex.Replace(ViewModel.SkillTreeUrl, @"\?.*", "");
+                    ViewModel.SkillTreeUrl = Regex.Replace(ViewModel.SkillTreeUrl, Constants.TreeRegex, Constants.TreeAddress);
+                    ViewModel.Tree.LoadFromURL(ViewModel.SkillTreeUrl);
                 }
 
                 if (_justLoaded)
@@ -1980,8 +1980,8 @@ namespace POESKillTree.Views
             }
             catch (Exception ex)
             {
-                tbSkillURL.Text = ViewModel.Tree.SaveToURL();
-                ViewModel.Tree.LoadFromURL(tbSkillURL.Text);
+                ViewModel.SkillTreeUrl = ViewModel.Tree.SaveToURL();
+                ViewModel.Tree.LoadFromURL(ViewModel.SkillTreeUrl);
                 await this.ShowErrorAsync(L10n.Message("An error occurred while attempting to load Skill tree from URL."), ex.Message);
             }
         }
@@ -2143,12 +2143,12 @@ namespace POESKillTree.Views
 
         private void tbSkillURL_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            tbSkillURL.SelectAll();
+            SkillTreeUrlTextBox.SelectAll();
         }
 
         private void tbSkillURL_TextChanged(object sender, TextChangedEventArgs e)
         {
-            _undoList.Push(tbSkillURL.Text);
+            _undoList.Push(ViewModel.SkillTreeUrl);
         }
 
         private void tbSkillURL_Undo_Click(object sender, RoutedEventArgs e)
@@ -2159,16 +2159,16 @@ namespace POESKillTree.Views
         private void tbSkillURL_Undo()
         {
             if (_undoList.Count <= 0) return;
-            if (_undoList.Peek() == tbSkillURL.Text && _undoList.Count > 1)
+            if (_undoList.Peek() == ViewModel.SkillTreeUrl && _undoList.Count > 1)
             {
                 _undoList.Pop();
                 tbSkillURL_Undo();
             }
-            else if (_undoList.Peek() != tbSkillURL.Text)
+            else if (_undoList.Peek() != ViewModel.SkillTreeUrl)
             {
-                _redoList.Push(tbSkillURL.Text);
-                tbSkillURL.Text = _undoList.Pop();
-                ViewModel.Tree.LoadFromURL(tbSkillURL.Text);
+                _redoList.Push(ViewModel.SkillTreeUrl);
+                ViewModel.SkillTreeUrl = _undoList.Pop();
+                ViewModel.Tree.LoadFromURL(ViewModel.SkillTreeUrl);
                 UpdateUI();
             }
         }
@@ -2181,15 +2181,15 @@ namespace POESKillTree.Views
         private void tbSkillURL_Redo()
         {
             if (_redoList.Count <= 0) return;
-            if (_redoList.Peek() == tbSkillURL.Text && _redoList.Count > 1)
+            if (_redoList.Peek() == ViewModel.SkillTreeUrl && _redoList.Count > 1)
             {
                 _redoList.Pop();
                 tbSkillURL_Redo();
             }
-            else if (_redoList.Peek() != tbSkillURL.Text)
+            else if (_redoList.Peek() != ViewModel.SkillTreeUrl)
             {
-                tbSkillURL.Text = _redoList.Pop();
-                ViewModel.Tree.LoadFromURL(tbSkillURL.Text);
+                ViewModel.SkillTreeUrl = _redoList.Pop();
+                ViewModel.Tree.LoadFromURL(ViewModel.SkillTreeUrl);
                 UpdateUI();
             }
         }
@@ -2211,7 +2211,7 @@ namespace POESKillTree.Views
                     "https?://([\\w+?\\.\\w+])+([a-zA-Z0-9\\~\\!\\@\\#\\$\\%\\^\\&amp;\\*\\(\\)_\\-\\=\\+\\\\\\/\\?\\.\\:\\;\\'\\,]*)?",
                     RegexOptions.IgnoreCase);
 
-            var matches = regx.Matches(tbSkillURL.Text);
+            var matches = regx.Matches(ViewModel.SkillTreeUrl);
 
             if (matches.Count == 1)
             {

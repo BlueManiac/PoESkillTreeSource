@@ -17,6 +17,10 @@ namespace POESKillTree.ViewModels
         public int AscendancyClassIndex { get; set; }
         public List<string> AscendancyClasses { get; set; }
         public SkillTree Tree { get; set; }
+
+        [DoNotNotify]
         public bool UserInteraction { get; set; }
+
+        public string SkillTreeUrl { get; set; } = "https://www.pathofexile.com/passive-skill-tree/AAAAAgMA";
     }
 }
