@@ -11,6 +11,7 @@ using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using POESKillTree.Controls.Dialogs;
 using POESKillTree.Localization;
+using POESKillTree.Model.Items;
 using POESKillTree.SkillTreeFiles;
 using POESKillTree.Utils;
 using POESKillTree.Utils.Converter;

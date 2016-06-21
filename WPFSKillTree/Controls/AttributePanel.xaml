@@ -56,7 +56,7 @@
                         <xaml:Catalog Message="Item Attributes"/>
                     </TabItem.Header>
                     <Grid>
-                        <ListBox ScrollViewer.CanContentScroll="False" ItemsSource="{Binding ItemAttributes.Attributes}"  Height="{Binding ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}">
+                        <ListBox ScrollViewer.CanContentScroll="False" ItemsSource="{Binding ItemAttributes.Attributes}" Height="{Binding ActualHeight, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}" Width="{Binding ActualWidth, RelativeSource={RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type Grid}}}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate DataType="{x:Type items:ItemAttributes+Attribute}">
                                     <StackPanel>

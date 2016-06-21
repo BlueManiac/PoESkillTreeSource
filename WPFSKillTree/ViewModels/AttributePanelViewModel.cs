@@ -14,6 +14,7 @@ namespace POESKillTree.ViewModels
     [ImplementPropertyChanged]
     public class AttributePanelViewModel
     {
+        public ItemAttributes ItemAttributes { get; set; }
         public Visibility FilterVisibility { get; set; }
 
         public string FilterText { get; set; } = "";

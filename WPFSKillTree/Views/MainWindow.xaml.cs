@@ -1252,6 +1252,7 @@ namespace POESKillTree.Views
             itemAttributes.Equip.CollectionChanged += ItemAttributesEquipCollectionChanged;
             itemAttributes.PropertyChanged += ItemAttributesPropertyChanged;
             ViewModel.ItemAttributes = itemAttributes;
+            AttributePanel.ViewModel.ItemAttributes = itemAttributes;
             UpdateUI();
         }
 
