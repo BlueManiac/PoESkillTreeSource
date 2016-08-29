@@ -6,15 +6,12 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using POESKillTree.Controls.Dialogs;
 using POESKillTree.Localization;
-using POESKillTree.Model.Items;
 using POESKillTree.SkillTreeFiles;
 using POESKillTree.Utils;
-using POESKillTree.Utils.Converter;
 using POESKillTree.Utils.Extensions;
 using POESKillTree.ViewModels;
 using POESKillTree.Views;
@@ -54,17 +51,11 @@ namespace POESKillTree.Controls
             };
             cmRemoveHighlight.Click += UnhighlightNodesByAttribute;
 
-            var cmCreateGroup = new MenuItem();
-            cmCreateGroup.Header = "Create new group";
+            var cmCreateGroup = new MenuItem { Header = "Create new group" };
             cmCreateGroup.Click += CreateGroup;
-            _cmAddToGroup = new MenuItem();
-            _cmAddToGroup.Header = "Add to group...";
-            _cmAddToGroup.IsEnabled = false;
-            _cmDeleteGroup = new MenuItem();
-            _cmDeleteGroup.Header = "Delete group...";
-            _cmDeleteGroup.IsEnabled = false;
-            var cmRemoveFromGroup = new MenuItem();
-            cmRemoveFromGroup.Header = "Remove from group";
+            _cmAddToGroup = new MenuItem  { Header = "Add to group...", IsEnabled = false };
+            _cmDeleteGroup = new MenuItem { Header = "Delete group...", IsEnabled = false };
+            var cmRemoveFromGroup = new MenuItem { Header = "Remove from group" };
             cmRemoveFromGroup.Click += RemoveFromGroup;
 
             AttributeContextMenu = new ContextMenu();
@@ -83,15 +74,9 @@ namespace POESKillTree.Controls
         // Necessary to update the summed numbers in group names before every refresh
         public void RefreshAttributeLists()
         {
-            if (GetActiveAttributeGroupList() == lbAllAttr)
-            {
-                ViewModel.AttributeGroups.UpdateGroupNames(ViewModel.AllAttributes);
-            }
-            //use passive attribute list as a default so nothing breaks if neither tab is actually active
-            else
-            {
-                ViewModel.AttributeGroups.UpdateGroupNames(ViewModel.Attributes);
-            }
+            ViewModel.AttributeGroups.UpdateGroupNames(Equals(GetActiveAttributeGroupList(), lbAllAttr)
+                ? ViewModel.AllAttributes
+                : ViewModel.Attributes);
             ViewModel.AttributesCollection.Refresh();
             ViewModel.AllAttributesCollection.Refresh();
         }

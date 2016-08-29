@@ -31,10 +31,8 @@ using POESKillTree.SkillTreeFiles;
 using POESKillTree.TreeGenerator.ViewModels;
 using POESKillTree.TreeGenerator.Views;
 using POESKillTree.Utils;
-using POESKillTree.Utils.Converter;
 using POESKillTree.Utils.Extensions;
 using POESKillTree.ViewModels;
-using Attribute = POESKillTree.ViewModels.Attribute;
 
 namespace POESKillTree.Views
 {
@@ -1930,7 +1928,7 @@ namespace POESKillTree.Views
 
         private void lvSavedBuilds_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (ViewModel.Tree == null)
+            if (ViewModel?.Tree == null)
                 return;
 
             var build = lvSavedBuilds.SelectedItem as PoEBuild;
