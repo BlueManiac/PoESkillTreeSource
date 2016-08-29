@@ -289,14 +289,6 @@ namespace POESKillTree.Views
                         btnPoeUrl_Click(sender, e);
                         break;
                     case Key.D1:
-                    {
-                        ViewModel.UserInteraction = true;
-                        var index = int.Parse(e.Key.ToString().Substring(1)) - 1;
-                        ViewModel.CharacterClass = ViewModel.CharacterClasses[index];
-                        ViewModel.AscendancyClassIndex = 0;
-                        ViewModel.Tree.SwitchClass(0);
-                        break;
-                    }
                     case Key.D2:
                     case Key.D3:
                     case Key.D4:
