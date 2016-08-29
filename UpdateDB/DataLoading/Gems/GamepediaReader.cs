@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using HtmlAgilityPack;
 using log4net;
 using POESKillTree.SkillTreeFiles;
+using POESKillTree.Utils;
 using POESKillTree.Utils.Extensions;
 using Attribute = POESKillTree.SkillTreeFiles.ItemDB.Attribute;
 using Gem = POESKillTree.SkillTreeFiles.ItemDB.Gem;
@@ -20,8 +21,6 @@ using ValuePerQuality = POESKillTree.SkillTreeFiles.ItemDB.ValuePerQuality;
 namespace UpdateDB.DataLoading.Gems
 {
     // Reader for Unofficial Path of Exile Wiki @ Gamepedia.
-    // TODO: Parse for static modifiers as well (e.g. Spell Echo's "10% less Damage").
-    //       (partly done, someone should check if I missed something)
     public class GamepediaReader : IGemReader
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(GamepediaReader));
@@ -34,7 +33,8 @@ namespace UpdateDB.DataLoading.Gems
         }
 
         // Pattern to match numbers in attribute values.
-        static Regex ReNumber = new Regex("(\\d+(\\.\\d+)?)");
+        private static readonly Regex NumberRegex = new Regex(@"\d+(\.\d+)?");
+
         // Set of tokens to ignore.
         static HashSet<string> IgnoreTokens = new HashSet<string>
         {
@@ -110,7 +110,7 @@ namespace UpdateDB.DataLoading.Gems
             attributes.AddRange(ParseInfobox(doc, name, tags));
             attributes.AddRange(ParseProgressionTable(doc, name, tags));
 
-            return new Gem { Name = gemName, Attributes = attributes };
+            return new Gem { Name = gemName, Attributes = attributes, Tags = string.Join(", ", tags) };
         }
 
         private static IEnumerable<Attribute> ParseProgressionTable(HtmlDocument doc, string name, IReadOnlyCollection<string> tags)
@@ -194,96 +194,99 @@ namespace UpdateDB.DataLoading.Gems
 
         private static IEnumerable<Attribute> ParseInfobox(HtmlDocument doc, string name, ICollection<string> tags)
         {
-            var found = doc.DocumentNode.SelectNodes("//div[contains(@class,'item-box -gem')]");
+            var found = doc.DocumentNode.SelectNodes("//span[contains(@class,'item-box -gem')]");
             if (found == null || found.Count == 0)
             {
-                Log.WarnFormat("Gem infobox table not found for {0}", name);
+                Log.Warn($"Gem infobox table not found for {name}");
                 yield break;
             }
 
-            var table = found[0];
-            // If the mana cost is fixed it is not necessarily part of the level table.
-            var fixedManaAttr = ParseFixedManaCost(table);
-            if (fixedManaAttr != null)
-                yield return fixedManaAttr;
+            var itemBox = WikiUtils.ParseItemBox(found[0]);
+            var statGroups = itemBox.StatGroups;
+            if (!statGroups.Any())
+            {
+                Log.Warn($"Gem infobox table for {name} is empty");
+                yield break;
+            }
+            // Some attributes are both in first and fixed group. Don't allow such duplicates.
+            var fixedAttrNames = new HashSet<string>();
 
-            var itemboxstats = table.SelectSingleNode("span[contains(@class, 'item-stats')]");
+            // Attributes in first group (property group)
+            foreach (var wikiItemStat in statGroups[0])
+            {
+                var stats = wikiItemStat.Stats;
+                if (stats.Length != 2 || stats[0].Item2 != WikiStatColor.Default
+                    || stats[1].Item2 != WikiStatColor.Value)
+                    continue;
 
-            var tagNodes = itemboxstats.SelectNodes("span/a[contains(@title, '(gem tag)')]");
-            tagNodes?.Select(n => n.InnerHtml).ForEach(tags.Add);
+                var attr = ParseSingleValueAttribute(wikiItemStat.StatsCombined);
+                if (attr == null)
+                    continue;
+                if (fixedAttrNames.Add(attr.Name))
+                    yield return attr;
+            }
 
-            var td = itemboxstats.SelectNodes("span[contains(@class, '-mod')]");
-            if (td == null) yield break;
+            // Tags
+            if (statGroups[0].Any())
+            {
+                var tagStat = statGroups[0][0];
+                if (tagStat.Stats.Length == 1)
+                {
+                    tagStat.StatsCombined.Split(new[] {", "}, StringSplitOptions.RemoveEmptyEntries).ForEach(tags.Add);
+                }
+            }
 
             // Per 1% Quality
-            var textNodes = td[0].SelectNodes(".//text()");
-            if (textNodes != null)
+            var qualityGroupIndex = -1;
+            for (var i = 0; i < statGroups.Length; i++)
             {
-                List<string> texts = new List<string>();
-                foreach (HtmlNode node in textNodes)
-                    texts.Add(node.InnerText);
-
-                List<Token> tokens = ParseTokens(texts);
-                foreach (Token token in tokens)
+                if (statGroups[i].Any()
+                    && statGroups[i].First().StatsCombined.Contains("Per 1% Quality:"))
                 {
-                    Log.Debug("  [Per 1% Quality] " + token.Name);
-                    if (token.Value != null)
+                    qualityGroupIndex = i;
+                    break;
+                }
+            }
+            if (qualityGroupIndex < 0)
+                yield break;
+            var texts = statGroups[qualityGroupIndex].Skip(1).Select(s => s.StatsCombined);
+            foreach (var token in ParseTokens(texts))
+            {
+                if (token.Value != null)
+                {
+                    yield return new Attribute
                     {
-                        yield return new Attribute
-                        {
-                            Name = token.Name,
-                            Values = new List<Value> {new ValuePerQuality {Text = token.Value}}
-                        };
-                    }
+                        Name = token.Name,
+                        Values = new List<Value> {new ValuePerQuality {Text = token.Value}}
+                    };
                 }
             }
 
             // Values fixed per level
-            if (td.Count <= 1) yield break;
-            textNodes = td[1].SelectNodes(".//text()");
-            if (textNodes == null) yield break;
-            foreach (var attr in textNodes.Select(n => n.InnerHtml).Select(ParseFixedAttribute).Where(a => a != null))
+            var fixedGroupIndex = qualityGroupIndex + 1;
+            if (fixedGroupIndex < 1 || fixedGroupIndex >= statGroups.Length)
+                yield break;
+            var attrs = statGroups[fixedGroupIndex]
+                .Select(s => s.StatsCombined)
+                .Select(ParseSingleValueAttribute)
+                .Where(a => a != null);
+            foreach (var attr in attrs)
             {
-                yield return attr;
+                if (fixedAttrNames.Add(attr.Name))
+                    yield return attr;
             }
         }
 
-        private static Attribute ParseFixedManaCost(HtmlNode table)
+        private static Attribute ParseSingleValueAttribute(string text)
         {
-            var textDefaults = table.SelectNodes(".//span[contains(@class, '-default')]");
-            if (textDefaults == null)
-                return null;
-            foreach (var textDefault in textDefaults)
-            {
-                if (!textDefault.InnerHtml.Contains("Mana Cost"))
-                    continue;
-
-                var textValue = textDefault.NextSibling;
-                var cost = textValue.InnerHtml;
-                if (textValue.GetAttributeValue("class", "").Contains("-value")
-                    && Regex.IsMatch(cost, @"^\d+$"))
-                {
-                    return new Attribute
-                    {
-                        Name = "Mana Cost: #",
-                        Values = new List<Value> { new ItemDB.ValueForLevelRange { From = 1, To = 30, Text = cost } }
-                    };
-                }
-            }
-            return null;
-        }
-
-        private static Attribute ParseFixedAttribute(string text)
-        {
-            var numberMatches = ReNumber.Matches(text);
+            var numberMatches = NumberRegex.Matches(text);
             if (numberMatches.Count != 1)
                 return null;
-
-            var valueText = numberMatches[0].Value;
             return new Attribute
             {
-                Name = text.Replace(valueText, "#").Replace("\n", " "),
-                Values = new List<Value> {new ItemDB.ValueForLevelRange {From = 1, To = 30, Text = valueText } }
+                Name = NumberRegex.Replace(text, "#").Replace("\n", " "),
+                Values =
+                    new List<Value> {new ItemDB.ValueForLevelRange {From = 1, To = 30, Text = numberMatches[0].Value}}
             };
         }
 
@@ -296,16 +299,17 @@ namespace UpdateDB.DataLoading.Gems
             {
                 // Parse values.
                 string value = "";
-                foreach (Match m in ReNumber.Matches(text))
+                foreach (Match m in NumberRegex.Matches(text))
                     value += " " + m.Groups[0].Value;
                 value = value.TrimStart();
 
                 // Replace numbers with 'x'.
-                string token = ReNumber.Replace(text, "#");
+                string token = NumberRegex.Replace(text, "#");
                 token = token.Replace("+x", "+#");
                 token = token.Replace("x%", "#%");
-                token = token.Replace("x-y", "#-#");
-                token = token.Replace("x–y", "#-#"); //weird dash
+                token = token.Replace("x-y", "# to #");
+                token = token.Replace("x–y", "# to #"); //weird dash
+                token = token.Replace("x to y", "# to #");
                 token = token.Replace("x ", "# ");
                 token = token.Replace(" x", " #");
 
