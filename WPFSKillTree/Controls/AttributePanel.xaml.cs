@@ -190,11 +190,13 @@ namespace POESKillTree.Controls
             ListBox lb = GetActiveAttributeGroupList();
             if (lb == null)
                 return;
+
             var attributelist = new List<string>();
             foreach (object o in lb.SelectedItems)
             {
                 attributelist.Add(o.ToString());
             }
+
             if (attributelist.Count > 0)
             {
                 ViewModel.AttributeGroups.RemoveFromGroup(attributelist.ToArray());
@@ -208,11 +210,13 @@ namespace POESKillTree.Controls
             ListBox lb = GetActiveAttributeGroupList();
             if (lb == null)
                 return;
+
             var attributelist = new List<string>();
             foreach (object o in lb.SelectedItems)
             {
                 attributelist.Add(o.ToString());
             }
+
             if (attributelist.Count > 0)
             {
                 ViewModel.AttributeGroups.AddGroup(((MenuItem)sender).Header.ToString(), attributelist.ToArray());
@@ -314,12 +318,17 @@ namespace POESKillTree.Controls
         public void UpdateAttributeList()
         {
             ViewModel.Attributes.Clear();
-            var copy = App.MainViewModel.Tree.HighlightedAttributes == null ? null : new Dictionary<string, List<float>>(App.MainViewModel.Tree.HighlightedAttributes);
+
+            var copy = App.MainViewModel.Tree.HighlightedAttributes == null
+                ? null
+                : new Dictionary<string, List<float>>(App.MainViewModel.Tree.HighlightedAttributes);
 
             foreach (var item in App.MainViewModel.Tree.SelectedAttributes)
             {
                 var a = new Attribute(InsertNumbersInAttributes(item));
-                if (!CheckIfAttributeMatchesFilter(a)) continue;
+                if (!CheckIfAttributeMatchesFilter(a))
+                    continue;
+
                 if (copy != null && copy.ContainsKey(item.Key))
                 {
                     var citem = copy[item.Key];
@@ -330,6 +339,7 @@ namespace POESKillTree.Controls
                 {
                     a.Deltas = copy != null ? item.Value.ToArray() : item.Value.Select(v => 0f).ToArray();
                 }
+
                 ViewModel.Attributes.Add(a);
             }
 
@@ -338,7 +348,10 @@ namespace POESKillTree.Controls
                 foreach (var item in copy)
                 {
                     var a = new Attribute(InsertNumbersInAttributes(new KeyValuePair<string, List<float>>(item.Key, item.Value.Select(v => 0f).ToList())));
-                    if (!CheckIfAttributeMatchesFilter(a)) continue;
+
+                    if (!CheckIfAttributeMatchesFilter(a))
+                        continue;
+
                     a.Deltas = item.Value.Select(h => 0 - h).ToArray();
                     // if(item.Value.Count == 0)
                     a.Missing = true;
@@ -377,10 +390,12 @@ namespace POESKillTree.Controls
         public string InsertNumbersInAttributes(KeyValuePair<string, List<float>> attrib)
         {
             string s = attrib.Key;
+
             foreach (float f in attrib.Value)
             {
                 s = _backreplace.Replace(s, f + "", 1);
             }
+
             return s;
         }
 
@@ -394,6 +409,7 @@ namespace POESKillTree.Controls
                         .Replace(@"+", @"\+")
                         .Replace(@"-", @"\-")
                         .Replace(@"%", @"\%"), @"[0-9]*\.?[0-9]+", @"[0-9]*\.?[0-9]+") + "$";
+
             App.MainViewModel.Tree.HighlightNodesBySearch(newHighlightedAttribute, true, NodeHighlighter.HighlightState.FromAttrib);
         }
 
