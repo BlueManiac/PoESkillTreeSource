@@ -337,7 +337,7 @@ namespace POESKillTree.Controls
                 }
                 else
                 {
-                    a.Deltas = copy != null ? item.Value.ToArray() : item.Value.Select(v => 0f).ToArray();
+                    a.Deltas = copy != null && copy.Any() ? item.Value.ToArray() : item.Value.Select(v => 0f).ToArray();
                 }
 
                 ViewModel.Attributes.Add(a);
